@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RequireRole from "./routes/RequireRole";
 
@@ -8,6 +8,8 @@ import CoursePage from "./pages/CoursePage";
 import LecturePage from "./pages/LecturePage";
 import CreateCourse from "./pages/CreateCourse";
 import AddLecture from "./pages/AddLecture";
+import EditCourse from "./pages/EditCourse";
+import EditLecture from "./pages/EditLecture";
 
 export default function App() {
   return (
@@ -21,25 +23,19 @@ export default function App() {
 
       {/* Instructor-only */}
       <Route
-        path="/instructor/new-course"
         element={
           <ProtectedRoute>
             <RequireRole role="INSTRUCTOR">
-              <CreateCourse />
+              <Outlet />
             </RequireRole>
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/instructor/courses/:id/add-lecture"
-        element={
-          <ProtectedRoute>
-            <RequireRole role="INSTRUCTOR">
-              <AddLecture />
-            </RequireRole>
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route path="/instructor/new-course" element={<CreateCourse />} />
+        <Route path="/instructor/courses/:id/add-lecture" element={<AddLecture />} />
+        <Route path="/instructor/courses/:id/edit" element={<EditCourse />} />
+        <Route path="/instructor/lectures/:lectureId/edit" element={<EditLecture />} />
+      </Route>
 
       <Route path="*" element={<div className="p-10 text-center">Not Found</div>} />
     </Routes>
