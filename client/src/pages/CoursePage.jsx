@@ -12,37 +12,16 @@ export default function CoursePage() {
   const qc = useQueryClient();
   const [message, setMessage] = useState("");
 
-  // Load course + lectures
   const { data, isLoading, isError } = useQuery({
     queryKey: ["course", id],
     queryFn: async () => (await api.get(`/api/courses/${id}`)).data,
   });
 
-  // Enrollment status (for student view)
   const { data: status } = useQuery({
     queryKey: ["enrollmentStatus", id],
     queryFn: async () => (await api.get(`/api/enrollments/${id}/status`)).data,
   });
 
-  // Delete course (instructor only)
-  const deleteCourse = useMutation({
-    mutationFn: async () => (await api.delete(`/api/courses/${id}`)).data,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["courses"] });
-      qc.removeQueries({ queryKey: ["course", id] });
-      nav(-1);
-    },
-  });
-
-  // Delete lecture (instructor only)
-  const deleteLecture = useMutation({
-    mutationFn: async (lectureId) => (await api.delete(`/api/lectures/${lectureId}`)).data,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["course", id] });
-    },
-  });
-
-  // Enroll (student)
   const enroll = useMutation({
     mutationFn: async () => (await api.post(`/api/enrollments/${id}/enroll`)).data,
     onSuccess: () => {
@@ -53,16 +32,6 @@ export default function CoursePage() {
       setTimeout(() => setMessage(""), 2000);
     },
   });
-
-  const handleDeleteCourse = () => {
-    if (!confirm("Delete this course? This cannot be undone.")) return;
-    deleteCourse.mutate();
-  };
-
-  const handleDeleteLecture = (lectureId) => {
-    if (!confirm("Delete this lecture?")) return;
-    deleteLecture.mutate(lectureId);
-  };
 
   if (isLoading) {
     return (
@@ -84,7 +53,17 @@ export default function CoursePage() {
   const { course, lectures } = data;
   const isOwner = user?.role === "INSTRUCTOR" && (user.id === course?.instructor?._id || user.id === course?.instructor?.id);
   const enrolled = !!status?.enrolled;
-  const canAccess = isOwner || enrolled; // instructors can always access their own course lectures
+
+  // Student progress (text only)
+  const { data: progress } = useQuery({
+    queryKey: ["progress", id],
+    queryFn: async () => (await api.get(`/api/progress/course/${id}`)).data,
+    enabled: Boolean(enrolled && user?.role === "STUDENT"),
+  });
+
+  const done = progress?.completedLectureIds?.length || 0;
+  const total = lectures?.length || 0;
+  const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
     <>
@@ -95,15 +74,8 @@ export default function CoursePage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">{course.title}</h1>
           {isOwner && (
-            <div className="card-actions flex items-center gap-2">
-              {/* Add lecture page (your existing component) */}
+            <div className="card-actions">
               <Link to={`/instructor/courses/${id}/add-lecture`} className="btn btn-outline btn-sm">Add Lecture</Link>
-              {/* Edit course goes to EditCourse.jsx */}
-              <Link to={`/instructor/courses/${id}/edit`} className="btn btn-outline btn-sm">Edit Course</Link>
-              {/* Delete course triggers cascade on server */}
-              <button onClick={handleDeleteCourse} className="btn btn-error btn-sm" disabled={deleteCourse.isPending}>
-                {deleteCourse.isPending ? "Deleting..." : "Delete Course"}
-              </button>
             </div>
           )}
           <div className="flex items-center gap-3">
@@ -126,34 +98,26 @@ export default function CoursePage() {
 
         <p className="opacity-80">{course.description}</p>
         <p className="text-sm opacity-70">Instructor: {course.instructor?.name} ({course.instructor?.email})</p>
+        {Boolean(enrolled && user?.role === "STUDENT" && total > 0) && (
+          <div className="text-sm opacity-75">Progress: {done}/{total} ({pct}%)</div>
+        )}
 
         <div className="divider" />
 
         <ul className="menu bg-base-100 rounded-box">
           {lectures.map((lec) => (
-            <li key={lec._id} className={!canAccess ? "disabled opacity-60" : ""}>
-              <div className="flex items-center justify-between">
-                {canAccess ? (
-                  <Link to={`/courses/${id}/lecture/${lec._id}`} className="truncate">
-                    <span className="badge mr-2">{lec.type}</span>
-                    <span>#{lec.order} — {lec.title}</span>
-                  </Link>
-                ) : (
-                  <div className="truncate">
-                    <span className="badge mr-2">{lec.type}</span>
-                    <span>#{lec.order} — {lec.title} (locked)</span>
-                  </div>
-                )}
-                {isOwner && (
-                  <div className="flex items-center gap-2 ml-3">
-                    {/* Edit lecture goes to EditLecture.jsx */}
-                    <Link to={`/instructor/lectures/${lec._id}/edit`} className="btn btn-xs btn-outline">Edit</Link>
-                    <button onClick={() => handleDeleteLecture(lec._id)} className="btn btn-xs btn-error" disabled={deleteLecture.isPending}>
-                      {deleteLecture.isPending ? "Deleting..." : "Delete"}
-                    </button>
-                  </div>
-                )}
-              </div>
+            <li key={lec._id} className={!enrolled ? "disabled opacity-60" : ""}>
+              {enrolled ? (
+                <Link to={`/courses/${id}/lecture/${lec._id}`}>
+                  <span className="badge mr-2">{lec.type}</span>
+                  <span>#{lec.order} — {lec.title}</span>
+                </Link>
+              ) : (
+                <div>
+                  <span className="badge mr-2">{lec.type}</span>
+                  <span>#{lec.order} — {lec.title} (locked)</span>
+                </div>
+              )}
             </li>
           ))}
         </ul>

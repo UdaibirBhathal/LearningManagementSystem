@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { completeReading, submitQuiz, courseProgress } from "./progress.controller.js";
-import { requireAuth } from "../../middleware/requireAuth.js";
+import { requireAuth, requireRole } from "../../middleware/requireAuth.js";
+import {
+  courseProgress,
+  completeReading,
+  submitQuiz,
+} from "./progress.controller.js";
 
 const r = Router();
 
-r.post("/complete-reading/:lectureId", requireAuth, completeReading);
-r.post("/submit-quiz/:lectureId", requireAuth, submitQuiz);
 r.get("/course/:courseId", requireAuth, courseProgress);
+r.post("/complete-reading/:lectureId", requireAuth, requireRole(["STUDENT"]), completeReading);
+r.post("/submit-quiz/:lectureId", requireAuth, requireRole(["STUDENT"]), submitQuiz);
 
 export default r;

@@ -19,12 +19,18 @@ export async function createCourse(req, res) {
 
 export async function listCourses(req, res) {
   try {
-    const courses = await Course.find({})
+    const q = {};
+    if (req.user?.role === "INSTRUCTOR") {
+      q.instructor = req.user.sub;
+    }
+    const courses = await Course.find(q)
       .populate("instructor", "name email")
+      .sort({ createdAt: -1 })
       .lean();
-    return res.json(courses);
+
+    res.json(courses);
   } catch {
-    return res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" });
   }
 }
 
