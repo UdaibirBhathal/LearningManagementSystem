@@ -1,4 +1,5 @@
 import Course from "../courses/course.model.js";
+import Enrollment from "../enrollments/enrollment.model.js";
 import { Lecture, ReadingLecture, QuizLecture } from "./lecture.model.js";
 
 export async function addLecture(req, res) {
@@ -31,5 +32,9 @@ export async function getLecture(req, res) {
   const { lectureId } = req.params;
   const lecture = await Lecture.findById(lectureId);
   if (!lecture) return res.status(404).json({ message: "Lecture not found" });
+
+  const isEnrolled = await Enrollment.findOne({ student: req.user.sub, course: lecture.course }).lean();
+  if (!isEnrolled) return res.status(403).json({ message: "Please enroll to access lectures" });
+
   res.json(lecture);
 }

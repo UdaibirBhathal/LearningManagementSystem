@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
+import CoursePage from "./pages/CoursePage";
+import LecturePage from "./pages/LecturePage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -8,6 +10,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/login" element={<LoginPage />} />
+
       <Route
         path="/home"
         element={
@@ -16,6 +19,23 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/courses/:id"
+        element={
+          <ProtectedRoute>
+            <CoursePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/courses/:id/lecture/:lectureId"
+        element={
+          <ProtectedRoute>
+            <LecturePage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<div className="p-10 text-center">Not Found</div>} />
     </Routes>
   );

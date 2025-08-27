@@ -7,8 +7,10 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./modules/auth/auth.routes.js";
 import courseRoutes from "./modules/courses/course.routes.js";
+import enrollmentRoutes from "./modules/enrollments/enrollment.routes.js";
 import lectureRoutes from "./modules/lectures/lecture.routes.js";
 import progressRoutes from "./modules/progress/progress.routes.js";
+
 
 // 1) create app BEFORE using it
 const app = express();
@@ -27,8 +29,10 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 // 4) api routes
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/lectures", lectureRoutes);
 app.use("/api/progress", progressRoutes);
+
 
 // 5) export after everything is set up
 export default app;

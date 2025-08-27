@@ -16,16 +16,25 @@ export async function createCourse(req, res) {
   }
 }
 
-export async function listCourses(_req, res) {
-  const courses = await Course.find().select("title description instructor").populate("instructor", "name email");
+export async function listCourses(req, res) {
+  const query = req.user.role === "INSTRUCTOR" ? { instructor: req.user.sub } : {};
+  const courses = await Course.find(query)
+    .populate("instructor", "name email")
+    .sort({ createdAt: -1 });
   res.json(courses);
 }
 
 export async function getCourse(req, res) {
-  const { courseId } = req.params;
-  const course = await Course.findById(courseId).populate("instructor", "name email");
+  const { id } = req.params;
+
+  const course = await Course.findById(id)
+    .populate("instructor", "name email")
+    .lean();
   if (!course) return res.status(404).json({ message: "Course not found" });
 
-  const lectures = await Lecture.find({ course: courseId }).select("title type order").sort({ order: 1 });
+  const lectures = await Lecture.find({ course: id })
+    .sort({ order: 1 })
+    .lean();
+
   res.json({ course, lectures });
 }
