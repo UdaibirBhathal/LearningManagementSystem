@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../components/AuthProvider";
 import { api } from "../lib/api";
@@ -8,6 +8,7 @@ import { useState } from "react";
 export default function CoursePage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const nav = useNavigate();
   const qc = useQueryClient();
   const [message, setMessage] = useState("");
 
@@ -50,16 +51,22 @@ export default function CoursePage() {
   }
 
   const { course, lectures } = data;
+  const isOwner = user?.role === "INSTRUCTOR" && (user.id === course?.instructor?._id || user.id === course?.instructor?.id);
   const enrolled = !!status?.enrolled;
 
   return (
     <>
       <Navbar />
       <div className="p-6 max-w-4xl mx-auto space-y-4">
-        <button className="btn btn-ghost w-fit" onClick={() => history.back()}>← Back</button>
+        <button className="btn btn-ghost w-fit" onClick={() => nav(-1)}>← Back</button>
 
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">{course.title}</h1>
+          {isOwner && (
+            <div className="card-actions">
+              <Link to={`/instructor/courses/${id}/add-lecture`} className="btn btn-outline btn-sm">Add Lecture</Link>
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <span className="badge badge-ghost">Enrolled: {course.enrolledCount ?? 0}</span>
             {!enrolled ? (

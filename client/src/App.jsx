@@ -1,9 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import RequireRole from "./routes/RequireRole";
+
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import CoursePage from "./pages/CoursePage";
 import LecturePage from "./pages/LecturePage";
-import ProtectedRoute from "./routes/ProtectedRoute";
+import CreateCourse from "./pages/CreateCourse";
+import AddLecture from "./pages/AddLecture";
 
 export default function App() {
   return (
@@ -11,27 +15,28 @@ export default function App() {
       <Route path="/" element={<Navigate to="/home" />} />
       <Route path="/login" element={<LoginPage />} />
 
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/courses/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
+      <Route path="/courses/:id/lecture/:lectureId" element={<ProtectedRoute><LecturePage /></ProtectedRoute>} />
+
+      {/* Instructor-only */}
       <Route
-        path="/home"
+        path="/instructor/new-course"
         element={
           <ProtectedRoute>
-            <HomePage />
+            <RequireRole role="INSTRUCTOR">
+              <CreateCourse />
+            </RequireRole>
           </ProtectedRoute>
         }
       />
       <Route
-        path="/courses/:id"
+        path="/instructor/courses/:id/add-lecture"
         element={
           <ProtectedRoute>
-            <CoursePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/courses/:id/lecture/:lectureId"
-        element={
-          <ProtectedRoute>
-            <LecturePage />
+            <RequireRole role="INSTRUCTOR">
+              <AddLecture />
+            </RequireRole>
           </ProtectedRoute>
         }
       />

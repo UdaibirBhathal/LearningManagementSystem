@@ -10,8 +10,12 @@ export default function Navbar() {
       <div className="flex-1">
         <Link to="/home" className="btn btn-ghost text-xl">LMS</Link>
       </div>
+
       <div className="flex-none gap-2">
-        {user && <span className="text-sm opacity-70 mr-2">{user.email} · {user.role}</span>}
+        {user?.role === "INSTRUCTOR" && (
+          <Link to="/instructor/new-course" className="btn btn-sm">New Course</Link>
+        )}
+        {user && <span className="text-sm opacity-80 mr-2">{user.email} · {user.role}</span>}
         {user ? (
           <button className="btn btn-outline" onClick={() => { logout(); nav("/login"); }}>
             Logout
