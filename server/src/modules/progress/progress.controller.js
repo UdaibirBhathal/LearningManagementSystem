@@ -97,3 +97,33 @@ export async function courseProgress(req, res) {
     return res.status(500).json({ message: "Server error" });
   }
 }
+
+export async function resetCourseProgress(req, res) {
+  try {
+    const { courseId } = req.params;
+
+    const isEnrolled = await Enrollment.findOne({
+      student: req.user.sub,
+      course: courseId,
+    }).lean();
+    if (!isEnrolled) {
+      return res.status(403).json({ message: "Enroll to reset progress" });
+    }
+
+    const doc = await Progress.findOneAndUpdate(
+      { student: req.user.sub, course: courseId },
+      { $set: { completedLectureIds: [], scores: [] } },
+      { new: true, upsert: true }
+    ).lean();
+
+    return res.json({
+      ok: true,
+      progress: {
+        completedLectureIds: doc.completedLectureIds || [],
+        scores: doc.scores || [],
+      },
+    });
+  } catch (e) {
+    return res.status(500).json({ message: "Server error" });
+  }
+}

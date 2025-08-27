@@ -34,7 +34,7 @@ export default function App() {
         <Route path="/instructor/new-course" element={<CreateCourse />} />
         <Route path="/instructor/courses/:id/add-lecture" element={<AddLecture />} />
         <Route path="/instructor/courses/:id/edit" element={<EditCourse />} />
-        <Route path="/instructor/lectures/:lectureId/edit" element={<EditLecture />} />
+        <Route path="/instructor/courses/:id/lectures/:lectureId/edit" element={<EditLecture />} />
       </Route>
 
       <Route path="*" element={<div className="p-10 text-center">Not Found</div>} />
