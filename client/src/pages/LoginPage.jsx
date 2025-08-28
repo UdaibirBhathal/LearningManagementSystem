@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../components/authProvider";
+import { useAuth } from "../components/AuthProvider";
 
 export default function LoginPage() {
   const nav = useNavigate();
