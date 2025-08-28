@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import Navbar from "../components/Navbar";
+import { useMemo, useState } from "react";
 
 export default function HomePage() {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -9,13 +10,35 @@ export default function HomePage() {
     queryFn: async () => (await api.get("/api/courses")).data,
   });
 
+  const [search, setSearch] = useState("");
+  const courses = data ?? [];
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return courses;
+    return courses.filter((c) => {
+      const title = (c.title || "").toLowerCase();
+      const instr = (c.instructor?.name || "").toLowerCase();
+      return title.includes(q) || instr.includes(q);
+    });
+  }, [courses, search]);
+
   return (
     <>
       <Navbar />
       <div className="p-6 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
           <h1 className="text-3xl font-bold">Available Courses</h1>
-          <button className="btn btn-outline btn-sm" onClick={() => refetch()}>Refresh</button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <input
+              type="text"
+              className="input input-bordered input-sm w-full md:w-72"
+              placeholder="Search by course or instructor"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button className="btn btn-outline btn-sm" onClick={() => refetch()}>Refresh</button>
+          </div>
         </div>
 
         {isLoading && (
@@ -34,7 +57,7 @@ export default function HomePage() {
 
         {!isLoading && !isError && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(data ?? []).map((c) => (
+            {filtered.map((c) => (
               <div key={c._id} className="card bg-base-100 shadow hover:shadow-lg">
                 <div className="card-body">
                   <h2 className="card-title">{c.title}</h2>
@@ -47,9 +70,14 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-            {data?.length === 0 && (
+            {courses.length === 0 && (
               <div className="col-span-full text-center opacity-70">
                 No courses yet. Ask an instructor to create one.
+              </div>
+            )}
+            {courses.length > 0 && filtered.length === 0 && (
+              <div className="col-span-full text-center opacity-70">
+                No matches for "<span className="font-semibold">{search}</span>".
               </div>
             )}
           </div>
