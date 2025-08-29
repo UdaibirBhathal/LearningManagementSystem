@@ -1,6 +1,8 @@
 # LearningManagementSystem
 
-A full-stack Learning Management System (LMS) that allows instructors to create and manage courses with lectures, and students to enroll, consume course content, complete quizzes, and track progress.
+A full-stack Learning Management System (LMS) that allows instructors to create and manage courses with lectures, and students to enroll, consume course content, complete quizzes, and track progress. 
+
+Demo: https://drive.google.com/file/d/11ZGsp2Tk6fh7HAJYv5WcFoFrEH_xtTO5/view?usp=drive_link
 
 Built with a MERN-style architecture:
 	•	React (Vite + Tailwind + DaisyUI) for the frontend
